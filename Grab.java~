@@ -1,0 +1,211 @@
+import java.awt.Rectangle;
+import java.util.ArrayList;
+import java.lang.Math;
+class Grab extends Attack{
+  private int [] xMove2;
+  private int [] yMove2;
+  private int [] enemyX;
+  private int [] enemyY;
+  private int [] atkAnim2;
+  private int damageFrame;
+  private boolean success;
+  private int grabDamage;
+  private int xKnockBack;
+  private int yKnockBack;
+  private int stun2;
+  private int directionChangeFrame;
+  private Effect [][] effect;
+  private int [][][] effectLocation;
+  Grab (int [] atkAnim, int [] atkAnim2, boolean air, Rectangle [][] hit, Rectangle [][] hurt, int damage, int stun, int selfStun, int xKnockback, int yKnockback, int []xMove, int[]yMove, int []xMove2, int []yMove2, int []enemyX, int []enemyY, int damageFrame){
+    super(atkAnim, air, hit, hurt, 0, stun, selfStun, 0, 2, true, 0, 0, xMove, yMove, null, false, 0, false, null, null, null, null, null);
+    this.atkAnim2 = atkAnim2;
+    this.xMove2 = xMove2;
+    this.yMove2 = yMove2;
+    this.enemyX = enemyX;
+    this.enemyY = enemyY;
+    this.damageFrame = damageFrame;
+    this.grabDamage = damage;
+    this.xKnockBack = xKnockback;
+    this.yKnockBack = yKnockback;
+    this.stun2 = stun-damageFrame;
+    success = false;
+  }
+  Grab (int [] atkAnim, int [] atkAnim2, boolean air, Rectangle [][] hit, Rectangle [][] hurt, int damage, int stun, int selfStun, int xKnockback, int yKnockback, int []xMove, int[]yMove, int []xMove2, int []yMove2, int []enemyX, int []enemyY, int damageFrame, int directionChangeFrame){
+    super(atkAnim, air, hit, hurt, 0, stun, selfStun, 0, 2, true, 0, 0, xMove, yMove, null, false, 0, false, null, null, null, null, null);
+    this.atkAnim2 = atkAnim2;
+    this.xMove2 = xMove2;
+    this.yMove2 = yMove2;
+    this.enemyX = enemyX;
+    this.enemyY = enemyY;
+    this.damageFrame = damageFrame;
+    this.grabDamage = damage;
+    this.xKnockBack = xKnockback;
+    this.yKnockBack = yKnockback;
+    this.stun2 = stun-damageFrame;
+    this.directionChangeFrame = directionChangeFrame;
+    success = false;
+  }
+  Grab (int [] atkAnim, int [] atkAnim2, boolean air, Rectangle [][] hit, Rectangle [][] hurt, int damage, int stun, int selfStun, int xKnockback, int yKnockback, int []xMove, int[]yMove, int []xMove2, int []yMove2, int []enemyX, int []enemyY, int damageFrame, int directionChangeFrame, Effect [][] effect, int [][][] effectLocation){
+    super(atkAnim, air, hit, hurt, 0, stun, selfStun, 0, 2, true, 0, 0, xMove, yMove, null, false, 0, false, null, effect, effectLocation, null, null);
+    this.atkAnim2 = atkAnim2;
+    this.xMove2 = xMove2;
+    this.yMove2 = yMove2;
+    this.enemyX = enemyX;
+    this.enemyY = enemyY;
+    this.damageFrame = damageFrame;
+    this.grabDamage = damage;
+    this.xKnockBack = xKnockback;
+    this.yKnockBack = yKnockback;
+    this.stun2 = stun-damageFrame;
+    this.directionChangeFrame = directionChangeFrame;
+    this.effect = new Effect [effect.length][effect[0].length];
+    this.effectLocation = new int [effectLocation.length][effectLocation[0].length][2];
+    success = false;
+  }
+  public boolean successful(){
+    return success;
+  }
+  public void hit(Player player, Player otherplayer){
+    player.setAnimationCounter(0);
+    success = true;
+    player.setStun(atkAnim2.length-1);
+  }
+  public int getAttackAnim(int i){
+    if (success == true){
+      return atkAnim2[i];
+    }
+    return super.getAttackAnim(i);
+  }
+  public int getXMove(int i){
+    if (success == true){
+      if (xMove2 != null){
+        return xMove2[i];
+      } 
+      return 0;
+    }
+    return super.getXMove(i);
+  }
+  public int getYMove(int i){
+    if (success == true){
+      if (yMove2 != null){
+        return yMove2[i];
+      } 
+      return 0;
+    }
+    return super.getYMove(i);
+  }
+  public int getLength(){
+    if (success == true){
+      return atkAnim2.length-1;
+    }
+    return super.getLength();
+  }
+  public Rectangle[][] getHitBox () {
+    if (success == true){
+      return null;
+    }
+    return super.getHitBox();
+  }
+  public Rectangle[][] getLHitBox(){
+    if (success == true){
+      return null;
+    }
+    return super.getLHitBox();
+  }
+  public Effect[] getEffect(int i){
+    if (success == true){
+      return super.getEffect(i);
+    }
+    return null;
+  }
+  public int getEffectX(int i, int j){
+    if (success == true){
+      return effectLocation[i][j][0];
+    }
+    return 0;
+  }
+  public int getEffectY(int i, int j){
+    if (success == true){
+      return effectLocation[i][j][1];
+    }
+    return 0;
+  }
+  public Rectangle[] getHurtBox(int idx){
+    if (success == true){
+      Rectangle [] temp = new Rectangle[1];
+      temp[0] = new Rectangle(1,1,1,1);
+      return temp;
+    }
+    return super.getHurtBox(idx);
+  }
+  public int getXKnockBack(){
+    if (success == true){
+      return xKnockBack;
+    }
+    return super.getXKnockBack();
+  }
+  public int getYKnockBack(){
+    if (success == true){
+      return yKnockBack;
+    }
+    return super.getYKnockBack();
+  }
+  public int getDamage(){
+    if (success == true){
+      return grabDamage;
+    }
+    return super.getDamage();
+  }
+  public int getStunDuration(){
+    if (success == true){
+      return stun2;
+    }
+    return super.getStunDuration();
+  }
+  public void setSuccess(){
+    success = false;
+  }
+  public void process(Player player, Player otherplayer){
+    if (player.getAnimationCounter()==directionChangeFrame){
+      if (player.getDirection().equals("left")){
+        player.setDirection("right");
+      } else {
+        player.setDirection("left");
+      }
+    }
+    if (player.getDirection().equals("left")){
+      if (enemyX[player.getAnimationCounter()]!=0){
+        otherplayer.setX(player.getX()-enemyX[player.getAnimationCounter()]);
+      }
+      
+    } else {
+      if (enemyX[player.getAnimationCounter()]!=0){
+        otherplayer.setX(player.getX()+enemyX[player.getAnimationCounter()]);
+      }
+    }
+    if (enemyY[player.getAnimationCounter()]!=0){
+      otherplayer.setY(player.getY()+enemyY[player.getAnimationCounter()]);
+    }
+    if (super.getEffect(player.getAnimationCounter()) != null){
+      for(int i = 0; i<super.getEffect(player.getAnimationCounter()).length; i++){
+        effectLocation[player.getAnimationCounter()][i][0] = Math.abs(otherplayer.getX()-player.getX())+super.getEffectX(player.getAnimationCounter(), i);
+      }
+    }
+    /*if (effect != null && effect[player.getAnimationCounter()]!= null){
+      if (player.getDirection().equals("left")){
+        effect[player.getAnimationCounter()].setX(player.getX()-effectLocation[player.getAnimationCounter()][0]);
+      } else {
+        effect[player.getAnimationCounter()].setX(player.getX()+effectLocation[player.getAnimationCounter()][0]);
+      }
+      effect[player.getAnimationCounter()].setY(player.getY()+effectLocation[player.getAnimationCounter()][1]);
+      effects.add(effect[player.getAnimationCounter()]);
+    }*/
+    if (player.getAnimationCounter() == damageFrame){
+      //System.out.println("reached");
+      otherplayer.hurt(this, player.getDirection());
+    }
+    /*if (player.getAnimationCounter() == atkAnim2.length){
+      success = false;
+    }*/
+  }
+}

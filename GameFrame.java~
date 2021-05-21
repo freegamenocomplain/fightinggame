@@ -1,0 +1,486 @@
+/**
+* This template can be used as reference or a starting point
+* for your final summative project
+* @author Mangat
+**/
+
+//Graphics &GUI imports
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import java.awt.Toolkit;
+import java.awt.Graphics;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import javax.imageio.ImageIO;
+  
+//Keyboard imports
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+
+//Mouse imports
+import java.awt.event.MouseListener;
+import java.awt.event.MouseEvent;
+
+import java.util.ArrayList;
+import java.io.File;
+
+class GameFrame extends JFrame { 
+
+  //class variable (non-static)
+   static double x = 500, y = 500;
+   static GameAreaPanel gamePanel;
+   
+   double nextTick;
+   
+   //make this private later
+   Player player1;
+   Player player2;
+   
+   //input arrays, Array used to record the keys pressed in the time between the last frame and this frame. One is used for each player
+   //index:
+   //0 - up
+   //1 - down
+   //2 = right
+   //3 = left
+   boolean [] input;
+   boolean [] input2;
+  
+   //InGame and Winner variables to track if game is currently going on and who won the game if the game is over
+   boolean inGame = true;
+   boolean loading;
+   boolean paused;
+   String winner;
+   
+   //ArrayList to record all of the effects currently active in the game
+   ArrayList<Effect> effects = new ArrayList<Effect>();
+   
+   Image [] pauseEffects = new Image [2];
+   Image background;
+   Image loadingScreen;
+    
+  //Constructor - this runs first
+  GameFrame() { 
+    
+    super("My Game");  
+    
+    //GET LOADING SCREEN WORKING
+    try {
+     loadingScreen = ImageIO.read(new File("loadingScreen.png"));
+    } catch (Exception E){}
+    
+    // Set the frame to full screen 
+    this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
+    //System.out.println(Toolkit.getDefaultToolkit().getScreenSize().width);
+    //System.out.println(Toolkit.getDefaultToolkit().getScreenSize().height);
+   // this.setUndecorated(true);  //Set to true to remove title bar
+   //frame.setResizable(false);
+
+
+    
+    //Set up the game panel (where we put our graphics)
+    gamePanel = new GameAreaPanel();
+    this.add(new GameAreaPanel());
+    
+    MyKeyListener keyListener = new MyKeyListener();
+    this.addKeyListener(keyListener);
+
+    MyMouseListener mouseListener = new MyMouseListener();
+    this.addMouseListener(mouseListener);
+
+    this.requestFocusInWindow(); //make sure the frame has focus   
+    
+    this.setVisible(true);
+    
+    //player1 = new Player(500, 500);
+    //player2 = new Player(1000, 500);
+    
+    input = new boolean[9];
+    input2 = new boolean[9];
+      
+    nextTick = System.currentTimeMillis() + 33;
+    
+    loading = true;
+    
+    //Start the game loop in a separate thread
+    Thread t = new Thread(new Runnable() { public void run() { animate(); }}); //start the gameLoop 
+    t.start();
+   
+  } //End of Constructor
+
+  //the main gameloop - this is where the game state is updated
+  public void animate() { 
+    
+    player1 = new Player(500, 500);
+    player2 = new Player(1000, 500);
+    try {
+     background = ImageIO.read(new File("Background2.png"));
+    } catch (Exception E){}
+    
+    paused = false;
+    try {
+      pauseEffects [0] = ImageIO.read(new File("pause.png"));
+      pauseEffects [1] = ImageIO.read(new File("pauseMessage.png"));
+    } catch (Exception E){}
+    loading = false;
+    
+    while(inGame){
+      //this.x = (Math.random()*1024);  //update coords
+      //this.y = (Math.random()*768);
+      if (!paused){
+        player1.processAerial();
+        player2.processAerial();
+        player1.processAnimationCounter();
+        player2.processAnimationCounter();
+        player1.processInput(input);
+        input = new boolean[9];
+        player2.processInput(input2);
+        input2 = new boolean[9];
+        String playerLocation = "right";
+        if (player1.getX()<player2.getX()){
+          playerLocation = "left";
+        }
+        player1.processResources();
+        player2.processResources();
+        player1.processMovement(Toolkit.getDefaultToolkit().getScreenSize().width, player2);
+        player2.processMovement(Toolkit.getDefaultToolkit().getScreenSize().width, player1);
+        player1.processProjectiles(player2);
+        player2.processProjectiles(player1);
+        player1.processHitBox();
+        player2.processHitBox();
+        calculateCollision(player1, player2, playerLocation);
+        player1.processHitBox();
+        player2.processHitBox();
+        player1.processHits(player2, effects);
+        player2.processHits(player1, effects);
+        if (player1.getStatus().equals("hurt")){
+          player1.setAttack();
+        }
+        if (player2.getStatus().equals("hurt")){
+          player2.setAttack();
+        }
+        for (int i = 0; i<effects.size(); i++){
+          if (effects.get(i).processEffect() == false) {
+            effects.remove(i);
+            i--;
+          } 
+        }
+      } else {
+        input = new boolean[9];
+        input2 = new boolean[9];
+      }
+      int sleepTime = (int)(nextTick - System.currentTimeMillis());
+      if (sleepTime>=0){
+        try{ Thread.sleep(sleepTime);} catch (Exception exc){}  //delay
+      }
+      nextTick = System.currentTimeMillis() + 33;
+      this.repaint();
+      //player1.setVelocity(0,0);
+      if (player1.getHealth()<=0 && player2.getHealth()<=0){
+        winner = "DRAW";
+        inGame = false;
+      } else if (player1.getHealth()<=0){
+        winner = "PLAYER 1";
+        inGame = false;
+      } else if (player2.getHealth()<=0){
+        winner = "PLAYER 2";
+        inGame = false;
+      }
+    }    
+    while(true){
+      int sleepTime = (int)(nextTick - System.currentTimeMillis());
+      if (sleepTime>=0){
+        try{ Thread.sleep(sleepTime);} catch (Exception exc){}  //delay
+      }
+      nextTick = System.currentTimeMillis() + 33;
+      this.repaint();
+    }
+  }
+  
+  
+  public void calculateCollision (Player player, Player otherplayer, String location){
+    if((player.getHurtBox() != null) && (otherplayer.getHurtBox() != null)){
+      for (int i = 0; i</*player.getHurtBox().length*/1; i++){
+        if (player.getHurtBox()[i]!=null){
+          for (int j = 0; j</*otherplayer.getHurtBox().length*/1; j++){
+            if (otherplayer.getHurtBox()[j]!=null){
+              if (player.getHurtBox()[i].intersects(otherplayer.getHurtBox()[j])){
+                if (location.equals("left")/*player.getHurtBox()[i].getX()<otherplayer.getHurtBox()[j].getX()*/){
+                  int overlap = (int)((player.getHurtBox()[i].getX()+player.getHurtBox()[i].getWidth()) - otherplayer.getHurtBox()[j].getX());
+                  if (overlap>=1){
+                    player1.addX(-(overlap/2));
+                    player2.addX(overlap/2);
+                  }
+                }
+                if (location.equals("right")/*player.getHurtBox()[i].getX()>=otherplayer.getHurtBox()[j].getX()*/){
+                  int overlap = (int)((otherplayer.getHurtBox()[j].getX()+otherplayer.getHurtBox()[j].getWidth()) - player.getHurtBox()[i].getX());
+                  if (overlap>=1){
+                    player1.addX(overlap/2);
+                    player2.addX(-(overlap/2));
+                  }
+                }
+                /*if (player.getX()==otherplayer.getX()){
+                 int overlap = (int)((otherplayer.getX()+70) - player.getX());
+                 if (overlap>=1){
+                 player1.addX(overlap/2);
+                 player2.addX(-(overlap/2));
+                 }
+                 }*/
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  /** --------- INNER CLASSES ------------- **/
+  
+  // Inner class for the the game area - This is where all the drawing of the screen occurs
+  private class GameAreaPanel extends JPanel {
+    public void paintComponent(Graphics g) {   
+       super.paintComponent(g); //required
+       setDoubleBuffered(true); 
+       if (loading) {
+         g.drawImage(loadingScreen, 0, -30, this);
+       } else {
+         g.drawImage(background, 0, -50, 2160, 1080, this);
+         //g.drawImage(background, 0, -1000, 2769, 2379, this);
+         displayResourceBars(g, player1, player2);
+         displayPlayer(player1, g);
+         displayPlayer(player2, g);
+         //displayHitbox(player1, g);
+         //displayHitbox(player2, g);
+         displayProjectiles(player1, g);
+         displayProjectiles(player2, g);
+         displayEffects(g);
+         if (paused){
+           g.drawImage(pauseEffects[0], 0, 0, this);
+           g.drawImage(pauseEffects[1], Toolkit.getDefaultToolkit().getScreenSize().width/2-(pauseEffects[1].getWidth(null)/2), Toolkit.getDefaultToolkit().getScreenSize().height/2-(pauseEffects[1].getHeight(null)/2), this);
+         }
+         if(inGame!=true){
+           if (winner.equals("DRAW")){
+             g.drawString(winner, Toolkit.getDefaultToolkit().getScreenSize().width/2, Toolkit.getDefaultToolkit().getScreenSize().height/2);
+           } else {
+             g.drawString(winner+" WINS", Toolkit.getDefaultToolkit().getScreenSize().width/2, Toolkit.getDefaultToolkit().getScreenSize().height/2);
+           }
+         }
+       }
+       //g.setColor(Color.BLUE); //There are many graphics commands that Java can use
+       //g.fillRect((int)x, (int)y, 50, 50); //notice the x,y variables that we control from our animate method      
+      
+    }
+    public void displayProjectiles(Player player, Graphics g){
+      for (int i = 0; i<player.getProjectiles().size(); i++){
+        if (player.getProjectiles().get(i).getDirection().equals("left")){
+          g.drawImage(player.getProjectiles().get(i).getImage(), player.getProjectiles().get(i).getX()+player.getProjectiles().get(i).getImage().getWidth(null), player.getProjectiles().get(i).getY(), -player.getProjectiles().get(i).getImage().getWidth(null), player.getProjectiles().get(i).getImage().getHeight(null), this);
+        } else {
+          g.drawImage(player.getProjectiles().get(i).getImage(), player.getProjectiles().get(i).getX(), player.getProjectiles().get(i).getY(), this);
+        }
+      }
+    }
+    public void displayEffects (Graphics g){
+      for (int i = 0; i<effects.size(); i++){
+        if (effects.get(i).getDirection().equals("left")){
+          g.drawImage(effects.get(i).getImage(), effects.get(i).getX()+effects.get(i).getImage().getWidth(null), effects.get(i).getY(), -effects.get(i).getImage().getWidth(null), effects.get(i).getImage().getHeight(null), this);
+        } else {
+          g.drawImage(effects.get(i).getImage(), effects.get(i).getX(), effects.get(i).getY(), this);
+        }
+      }
+    }
+    public void displayResourceBars(Graphics g, Player player, Player otherplayer){
+      g.drawRect(10, 10, player.getMaxHP()/3, 50);
+      g.drawRect(10, 60, player.getMaxMP(), 30);
+      g.drawRect(10, 90, player.getMaxBP()/3, 20);
+      g.drawRect(Toolkit.getDefaultToolkit().getScreenSize().width-30-(otherplayer.getMaxHP()/3), 10, otherplayer.getMaxHP()/3, 50);
+      g.drawRect(Toolkit.getDefaultToolkit().getScreenSize().width-30-otherplayer.getMaxMP(), 60, otherplayer.getMaxMP(), 30);
+      g.drawRect(Toolkit.getDefaultToolkit().getScreenSize().width-30-(otherplayer.getMaxBP()/3), 90, otherplayer.getMaxBP()/3, 20);
+      Graphics2D g2d = (Graphics2D) g;
+      g2d.setColor(new Color(255, 0, 0));
+      g2d.fillRect(10, 10, player.getHealth()/3, 50);
+      g2d.fillRect(Toolkit.getDefaultToolkit().getScreenSize().width-30-(otherplayer.getHealth()/3), 10, otherplayer.getHealth()/3, 50);
+      g2d.setColor(new Color(0, 0, 255));
+      g2d.fillRect(10, 60, player.getMP(), 30);
+      g2d.fillRect(Toolkit.getDefaultToolkit().getScreenSize().width-30-(otherplayer.getMP()), 60, otherplayer.getMP(), 30);
+      g2d.setColor(new Color(0, 255, 0));
+      g2d.fillRect(10, 90, player.getBP()/3, 20);
+      g2d.fillRect(Toolkit.getDefaultToolkit().getScreenSize().width-30-(otherplayer.getBP()/3), 90, otherplayer.getBP()/3, 20);
+    }
+    public void displayPlayer(Player currPlayer, Graphics g){
+      if (currPlayer.getDirection() == "left"){
+        g.drawImage(currPlayer.getImage(),currPlayer.getX()+currPlayer.getImage().getWidth(null),currPlayer.getY(), -currPlayer.getImage().getWidth(null), currPlayer.getImage().getHeight(null), this);
+      } else {
+        g.drawImage(currPlayer.getImage(),currPlayer.getX(),currPlayer.getY(), this);
+      }
+    }
+    public void displayHitbox(Player currPlayer, Graphics g){
+      if (currPlayer.getHitBox() != null){
+        for(int i = 0; i<currPlayer.getHitBox().length; i++){ 
+          if (currPlayer.getHitBox()[i] != null){
+            g.drawRect((int)currPlayer.getHitBox()[i].getX(), (int)currPlayer.getHitBox()[i].getY(), (int)currPlayer.getHitBox()[i].getWidth(), (int)currPlayer.getHitBox()[i].getHeight());
+          }
+        }
+      }
+      for (int i = 0; i<currPlayer.getProjectiles().size(); i++){
+        if (currPlayer.getProjectiles().get(i).getHitBox()!=null){
+          for(int j = 0; j<currPlayer.getProjectiles().get(i).getHitBox()[0].length; j++){
+            g.drawRect((int)currPlayer.getProjectiles().get(i).getCurrentHitBox(j).getX(), (int)currPlayer.getProjectiles().get(i).getCurrentHitBox(j).getY(), (int)currPlayer.getProjectiles().get(i).getCurrentHitBox(j).getWidth(), (int)currPlayer.getProjectiles().get(i).getCurrentHitBox(j).getHeight());
+          }
+        }
+      }
+      if (currPlayer.getHurtBox() != null){
+        for(int i = 0; i<currPlayer.getHurtBox().length; i++){ 
+          if (currPlayer.getHurtBox()[i] != null){
+            g.drawRect((int)currPlayer.getHurtBox()[i].getX(), (int)currPlayer.getHurtBox()[i].getY(), (int)currPlayer.getHurtBox()[i].getWidth(), (int)currPlayer.getHurtBox()[i].getHeight());
+          }
+        }
+      }
+    }
+  }
+  
+  // -----------  Inner class for the keyboard listener - this detects key presses and runs the corresponding code
+    private class MyKeyListener implements KeyListener {
+  
+      public void keyTyped(KeyEvent e) {
+        //int velocityY = 0;
+        /*if (e.getKeyChar() == 'a'){
+          input[3] = true;
+        } if (e.getKeyChar() == 's'){
+          
+        } if (e.getKeyChar() == 'd'){
+          input[2] = true;
+        } if (e.getKeyChar() == 'w'){
+          input[0] = true;
+        }*/
+        //player1.setYVelocity(velocityY);
+      }
+
+      public void keyPressed(KeyEvent e) {
+        //System.out.println("keyPressed="+KeyEvent.getKeyText(e.getKeyCode()));
+        //boolean [] keysPressed = new boolean [4];
+        //System.out.println(KeyEvent.getKeyText(e.getKeyCode()));
+        //System.out.println(KeyEvent.getKeyText(e.getKeyCode()));
+        //int velocityX = 0;
+        if (KeyEvent.getKeyText(e.getKeyCode()).equals("D")) {  //If 'D' is pressed
+          //System.out.println("D pressed");
+          input[2] = true;
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("A")) {
+          //System.out.println("A pressed");
+          input[3] = true;
+        }if (KeyEvent.getKeyText(e.getKeyCode()).equals("W")) {
+          input[0] = true;
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("S")) {
+          input [1] = true;
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("J")) {
+          input[4] = true;
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("K")) {
+          input[5] = true;
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("I")) {
+          input[7] = true;
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("U")) {
+          input[6] = true;
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("L")) {
+          input[8] = true;
+        } if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {  //If ESC is pressed
+          if (paused){
+            paused = false;
+          } else {
+            paused = true;
+          }
+          //System.out.println("YIKES ESCAPE KEY!"); //close frame & quit
+        }
+        
+        //NumPad-0
+        //NumPad .
+        //NumPad-1
+        if (KeyEvent.getKeyText(e.getKeyCode()).equals("Right")) {  //If 'D' is pressed
+          //System.out.println("D pressed");
+          input2[2] = true;
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("Left")) {
+          //System.out.println("A pressed");
+          input2[3] = true;
+        }if (KeyEvent.getKeyText(e.getKeyCode()).equals("Up")) {
+          input2[0] = true;
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("Down")) {
+          input2[1] = true;
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("NumPad-0")) {
+          input2[4] = true;
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("NumPad .")) {
+          input2[5] = true;
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("NumPad-3")) {
+          input2[7] = true;
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("NumPad-2")) {
+          input2[6] = true;
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("NumPad-1")) {
+          input2[8] = true;
+        }
+        
+        
+        
+        //player1.setXVelocity(velocityX);
+      }   
+      
+      public void keyReleased(KeyEvent e) {
+        if (KeyEvent.getKeyText(e.getKeyCode()).equals("D")) {  //If 'D' is pressed
+          //System.out.println("D released");
+          //if (player1.getXVelocity() == 50){
+          input [2] = false;
+          //input [4] = true;
+          player1.setMovingRight();
+          //}
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("A")) {
+          //System.out.println("A released");
+          //if (player1.getXVelocity() == -50){
+          input [3] = false;
+          //input [5] = true;
+          player1.setMovingLeft();
+          //}
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("S")) {
+          input [1] = false;
+          player1.setCrouch();
+          player1.setLastStatus("crouching");
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("L")) {
+          input[8] = false;
+          player1.setBlock();
+        }
+        
+        if (KeyEvent.getKeyText(e.getKeyCode()).equals("Right")) {  //If 'D' is pressed
+          input2[2] = false;
+          player2.setMovingRight();
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("Left")) {
+          input2[3] = false;
+          player2.setMovingLeft();
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("Down")) {
+          input2 [1] = false;
+          player2.setCrouch();
+          player2.setLastStatus("crouching");
+        } if (KeyEvent.getKeyText(e.getKeyCode()).equals("NumPad-1")) {
+          input2[8] = false;
+          player2.setBlock();
+        }
+      }
+    } //end of keyboard listener
+  
+  // -----------  Inner class for the keyboard listener - This detects mouse movement & clicks and runs the corresponding methods 
+    private class MyMouseListener implements MouseListener {
+   
+      public void mouseClicked(MouseEvent e) {
+        System.out.println("Mouse Clicked");
+        System.out.println("X:"+e.getX() + " y:"+e.getY());
+      }
+
+      public void mousePressed(MouseEvent e) {
+      }
+
+      public void mouseReleased(MouseEvent e) {
+      }
+
+      public void mouseEntered(MouseEvent e) {
+      }
+
+      public void mouseExited(MouseEvent e) {
+      }
+    } //end of mouselistener
+    
+}

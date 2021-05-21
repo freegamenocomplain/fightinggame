@@ -1,0 +1,183 @@
+import java.awt.Rectangle;
+class Attack {
+  private int [] attackAnim;
+  private int length;
+  private boolean aerial;
+  private Rectangle [][] hitbox;
+  private Rectangle [][] leftHitBox;
+  private Rectangle [][] hurtbox;
+  private int damage;
+  private int xKnockback;
+  private int yKnockback;
+  private int stunDuration;
+  private int selfStun;
+  private int blockStun;
+  private int shieldDamage;
+  private boolean launch;
+  private int hitInvul = 2;
+  private boolean [] still;
+  private int [] xMove;
+  private int [] yMove;
+  private boolean attackCancel;
+  private boolean jumpCancel;
+  private boolean [] phase;
+  private Effect [][] effect;
+  private int [][][] effectLocation;
+  private Projectile [][] projectile;
+  private int [][][] projectileLocation;
+  private int comboPriority = 1;
+  public int getAttackAnim(int i){
+    return attackAnim[i];
+  }
+  public int getLength(){
+    return length;
+  }
+  public int getStunDuration(){
+    return stunDuration;
+  }
+  public int getBlockStun(){
+    return blockStun;
+  }
+  public int getHitInvul(){
+    return hitInvul;
+  }
+  public int getDamage(){
+    return damage;
+  }
+  public int getShieldDamage(){
+    return shieldDamage;
+  }
+  public boolean isAerial(){
+    return aerial;
+  }
+  public boolean launching(){
+    return launch;
+  }
+  public int getXKnockBack(){
+    return xKnockback;
+  }
+  public int getYKnockBack(){
+    return yKnockback;
+  }
+  public Rectangle[][] getHitBox () {
+    return hitbox;
+  }
+  public Rectangle[][] getLHitBox(){
+    return leftHitBox;
+  }
+  public Rectangle[] getHurtBox(int idx){
+    return hurtbox[idx];
+  }
+  public int getXMove(int i){
+    if (xMove != null){
+      return xMove[i];
+    } 
+    return 0;
+  }
+  public int getYMove(int i){
+    if (yMove != null){
+      return yMove[i];
+    }
+    return 0;
+  }
+  public boolean isStill(int i){
+    if (still == null){
+      return false;
+    }
+    return still[i];
+  }
+  public int getSelfStun(){
+    return selfStun;
+  }
+  public boolean canAttackCancel(){
+    return attackCancel;
+  }
+  public int getComboPriority(){
+    return comboPriority;
+  }
+  public boolean canJumpCancel(){
+    return jumpCancel;
+  }
+  public boolean getPhase(int i){
+    if (phase != null){
+      return phase[i];
+    }
+    return false;
+  }
+  public Effect[] getEffect(int i){
+    if (effect!= null){
+      return effect[i];
+    }
+    return null;
+  }
+  public int getEffectX(int i, int j){
+    if (effectLocation != null){
+      return effectLocation[i][j][0];
+    }
+    return 0;
+  }
+  public int getEffectY(int i, int j){
+    if (effectLocation != null){
+      return effectLocation[i][j][1];
+    }
+    return 0;
+  }
+  public Projectile[] getProjectile(int i){
+    if (projectile!=null){
+      return projectile[i];
+    }
+    return null;
+  }
+  public int getProjectileX(int i, int j){
+    if (projectileLocation != null){
+      return projectileLocation[i][j][0];
+    }
+    return 0;
+  }
+  public int getProjectileY(int i, int j){
+    if (projectileLocation != null){
+      return projectileLocation[i][j][1];
+    }
+    return 0;
+  }
+  /*public void setEffectX(int i, int j, int val){
+    if (effectLocation != null){
+      effectLocation[i][j][0] = val;
+    }
+  }*/
+  Attack (int [] atkAnim, boolean air, Rectangle [][] hit, Rectangle [][] hurt, int damage, int stun, int selfStun, int blockStun, int hitInvul, boolean launch, int xKnockback, int yKnockback, int [] xMove, int [] yMove, boolean [] still, boolean attackCancel, int comboPriority, boolean jumpCancel, boolean [] phase, Effect [][] effect, int [][][] effectLocation, Projectile [][] projectile, int [][][] projectileLocation){
+    this.attackAnim = atkAnim;
+    this.length = attackAnim.length-1;
+    this.hitbox = hit;
+    this.hurtbox = hurt;
+    this.leftHitBox = new Rectangle[hit.length][hit[0].length];
+    for (int i = 0; i<hit.length; i++){
+      for (int j = 0; j<hit[i].length; j++){
+        if (hit[i][j] != null) {
+          this.leftHitBox[i][j] = new Rectangle((int)(550-hit[i][j].getX()-hit[i][j].getWidth()), (int)hit[i][j].getY(), (int)hit[i][j].getWidth(), (int)hit[i][j].getHeight());
+        }
+      }
+    }
+    this.damage = damage;
+    this.shieldDamage = damage/2;
+    this.aerial = air;
+    this.stunDuration = stun;
+    this.selfStun = selfStun;
+    this.blockStun = blockStun;
+    this.launch = launch;
+    this.xKnockback = xKnockback;
+    this.yKnockback = yKnockback;
+    this.xMove = xMove;
+    this.yMove = yMove;
+    this.still = still;
+    this.attackCancel = attackCancel;
+    this.jumpCancel = jumpCancel;
+    this.comboPriority = comboPriority; 
+    this.phase = phase;
+    this.effect = effect;
+    this.effectLocation = effectLocation;
+    this.projectile = projectile;
+    this.projectileLocation = projectileLocation;
+    this.hitInvul = hitInvul;
+  }
+}
