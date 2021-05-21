@@ -1,0 +1,2 @@
+class SpecialProjectile extends Projectile{
+}
