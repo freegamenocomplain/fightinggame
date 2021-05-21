@@ -1,0 +1,2 @@
+class SuperAttack1 extends SpecialAttack{
+}
