@@ -1,0 +1,111 @@
+/** 
+ * this template can be used for a start menu
+ * for your final project
+**/
+
+
+//Imports
+import javax.swing.JFrame;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import java.awt.Color;
+import java.awt.Image;
+import java.awt.Graphics;
+import java.awt.BorderLayout;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import javax.swing.SwingUtilities;
+import javax.swing.ImageIcon;
+import javax.swing.BorderFactory;
+import javax.swing.border.EmptyBorder;
+
+class StartingFrame extends JFrame { 
+
+  JFrame thisFrame;
+  
+  //Constructor - this runs first
+  StartingFrame() { 
+    super("Start Screen");
+    this.thisFrame = this; //lol  
+    
+    //configure the window
+    this.setSize(550,450);    
+    this.setLocationRelativeTo(null); //start the frame in the center of the screen
+    //this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  
+    this.setResizable (false);
+    
+    //Create a Panel for stuff
+    JPanel decPanel = new DecoratedPanel();
+    decPanel.setBorder(BorderFactory.createEmptyBorder());
+    decPanel.setLayout(null);
+    
+    //JPanel mainPanel = new JPanel();
+    //mainPanel.setLayout(new BorderLayout());
+    //mainPanel.setBackground(new Color(0, 0, 0, 0));
+    //mainPanel.setLayout(null);
+    
+    //Create a JButton for the centerPanel
+    ImageIcon sb =new ImageIcon("button1.png");
+    JButton startButton = new JButton(sb);
+    //JButton startButton = new JButton("START");
+    startButton.setBackground(new Color(0, 0, 0, 0));
+    startButton.setBorder(BorderFactory.createEmptyBorder());
+    startButton.setFocusPainted(false);
+    startButton.addActionListener(new StartButtonListener());
+    startButton.setBounds(300, 190, 240, 60);
+    
+     //Create a JButton for the centerPanel
+    JLabel startLabel = new JLabel("Welome to some game or something");
+    
+    //Add all panels to the mainPanel according to border layout
+    //mainPanel.add(startButton);
+    //mainPanel.add(startLabel,BorderLayout.CENTER);
+    
+    //mainPanel.setSize(550, 450);
+    //mainPanel.setVisible(true);
+    
+    decPanel.add(startButton);
+    
+    //add the main panel to the frame
+    this.add(decPanel);
+    
+    //Start the app
+    this.setVisible(true);
+  }
+  
+  //INNER CLASS - Overide Paint Component for JPANEL
+  private class DecoratedPanel extends JPanel {
+    
+    DecoratedPanel() {
+      this.setBackground(new Color(0,0,0,0));
+    }
+    
+    public void paintComponent(Graphics g) { 
+        super.paintComponent(g);     
+        Image pic = new ImageIcon( "menuScreen.png" ).getImage();
+        g.drawImage(pic,0,20,null); 
+   }
+  
+   
+  }
+  
+  //This is an inner class that is used to detect a button press
+ class StartButtonListener implements ActionListener {  //this is the required class definition
+    public void actionPerformed(ActionEvent event)  {  
+      System.out.println("Starting new Game");
+      thisFrame.dispose();
+      new GameFrame(); //create a new FunkyFrame (another file that extends JFrame)
+
+    }
+
+  }
+  
+  
+  //Main method starts this application
+  public static void main(String[] args) { 
+    new StartingFrame();
+
+  }
+  
+}

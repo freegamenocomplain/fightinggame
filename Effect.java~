@@ -1,0 +1,58 @@
+import java.awt.Image;
+class Effect {
+  private Image[] effectImages;
+  private int animationCounter;
+  private int [] effectAnim;
+  private int x;
+  private int y;
+  private String direction;
+  Effect (Image [] images, int [] effAnim){
+    effectImages = images;
+    effectAnim = effAnim;
+    animationCounter = 0;
+  }
+  Effect (Effect copyImage, int x, int y, String direction) {
+    this(copyImage.getEffectImages(), copyImage.getEffectAnim());
+    this.x = x;
+    this.y = y;
+    this.direction = direction;
+    this.animationCounter = -1;
+  }
+  public void setX(int i){
+    x = i;
+  }
+  public void setY(int i){
+    y = i;
+  }
+  public int getX(){
+    return x;
+  }
+  public int getY(){
+    return y;
+  }
+  public Image [] getEffectImages(){
+    return effectImages;
+  }
+  public int [] getEffectAnim(){
+    return effectAnim;
+  }
+  public String getDirection(){
+    return direction;
+  }
+  public boolean processEffect(){
+    //System.out.println(animationCounter);
+    if (animationCounter>=effectAnim.length-1){
+      return false;
+    } else {
+      animationCounter++;
+      return true;
+    }
+  }
+  public Image getImage(){
+    //System.out.println(effectImages[effectAnim[animationCounter]].getWidth(null));
+    if (animationCounter == -1){
+      animationCounter = 0;
+    }
+    return effectImages[effectAnim[animationCounter]];
+  }
+}

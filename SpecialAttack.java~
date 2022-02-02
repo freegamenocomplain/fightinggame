@@ -1,0 +1,39 @@
+import java.awt.Rectangle;
+class SpecialAttack extends Attack {
+  private String projectileIdentifier;
+  private int activationTime;
+  SpecialAttack (int [] atkAnim, boolean air, Rectangle [][] hit, Rectangle [][] hurt, int damage, int stun, int selfStun, int blockStun, int hitInvul, boolean launch, int xKnockback, int yKnockback, int [] xMove, int [] yMove, boolean [] still, boolean attackCancel, int comboPriority, boolean jumpCancel, boolean [] phase, Effect [][] effect, int [][][] effectLocation, Projectile [][] projectile, int [][][] projectileLocation, String projectileIdentifier, int activationTime){
+    super(atkAnim, air, hit, hurt, damage, stun, selfStun, blockStun, hitInvul, launch, xKnockback, yKnockback, xMove, yMove, still, attackCancel, comboPriority, jumpCancel, phase, effect, effectLocation, projectile, projectileLocation);
+    this.projectileIdentifier = projectileIdentifier;
+    this.activationTime = activationTime;
+  }
+  public void activate(Player player){
+    if (player.getMP()>=50 && player.getAnimationCounter()>=activationTime){
+      player.addMP(-50);
+      for(int i = 0; i<player.getProjectiles().size(); i++){
+        if (player.getProjectiles().get(i).getIdentifier().equals(projectileIdentifier)){
+          if (player.getProjectiles().get(i).getDirection().equals("left")){
+            player.setX(player.getProjectiles().get(i).getX()-90);
+          } else {
+            player.setX(player.getProjectiles().get(i).getX()+90);
+          }
+          player.setY(player.getProjectiles().get(i).getY()-200);
+          //System.out.println((player.getProjectiles().get(i).getY()));
+          System.out.println(player.getY());
+          player.setAttack();
+          player.setStun(0);
+          player.setSoftStun(0);
+          if (super.isAerial()){
+            player.setAnimationCounter(6);
+          } else {
+            player.setAnimationCounter(0);
+          }
+          //player.setXVelocity(0);
+          //player.setYVelocity(0);
+          player.getProjectiles().remove(i);
+          i = player.getProjectiles().size();
+        }
+      }
+    }
+  }
+}

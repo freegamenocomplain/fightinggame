@@ -1,0 +1,59 @@
+import java.awt.Image;
+import java.awt.Rectangle;
+class SpecialProjectileKnife extends Projectile{
+  Rectangle collisionBox;
+  SpecialProjectileKnife (Image [] projectileImage, int [] projectileAnim, int [] projectileEndAnim, int [] xVelocity, int [] yVelocity, int duration, int lingerFrames, Rectangle [][] hitbox, int damage, int stun, int blockStun, boolean launch, int xKnockback, int yKnockback, String identifier){
+    super(projectileImage, projectileAnim, projectileEndAnim, xVelocity, yVelocity, duration, lingerFrames, hitbox, damage, stun, blockStun, launch, xKnockback, yKnockback, identifier);
+    collisionBox = new Rectangle(195, 39, 150, 112);
+  }
+  SpecialProjectileKnife (Projectile projectileCopy, int x, int y, String direction){
+    super(projectileCopy, x, y, direction);
+    collisionBox = new Rectangle(195, 39, 150, 112);
+  }
+  public boolean process(Player otherplayer){
+    boolean projectileActive;
+    String location;
+    int startingX = super.getX();
+    if (super.getX()<otherplayer.getX()){
+      location = "left";
+    } else {
+      location = "right";
+    }
+    projectileActive = super.process();
+    Rectangle currentCollisionBox;
+    if (super.getDirection().equals("left")){
+      currentCollisionBox = new Rectangle((int)(super.getX()+super.getImage().getWidth(null)-collisionBox.getX()-collisionBox.getWidth()), (int)(super.getY()+collisionBox.getY()), (int)collisionBox.getWidth(), (int)collisionBox.getHeight());
+    } else {
+      currentCollisionBox = new Rectangle((int)(super.getX()+collisionBox.getX()), (int)(super.getY()+collisionBox.getY()), (int)collisionBox.getWidth(), (int)collisionBox.getHeight());
+    }
+    for (int j = 0; j</*otherplayer.getHurtBox().length*/1; j++){
+      //System.out.println("reached");
+      if (otherplayer.getHurtBox()[j]!=null){
+        if (currentCollisionBox.intersects(otherplayer.getHurtBox()[j])){
+          if (location.equals("left")/*currentCollisionBox.getX()<otherplayer.getHurtBox()[j].getX()*/){
+            int overlap = (int)((currentCollisionBox.getX()+currentCollisionBox.getWidth()) - otherplayer.getHurtBox()[j].getX());
+            if (overlap>=1){
+              super.addX(-(overlap/2));
+            }
+          }
+          if (location.equals("right")/*currentCollisionBox.getX()>=otherplayer.getHurtBox()[j].getX()*/){
+            int overlap = (int)((otherplayer.getHurtBox()[j].getX()+otherplayer.getHurtBox()[j].getWidth()) - currentCollisionBox.getX());
+            if (overlap>=1){
+              super.addX(overlap/2);
+            }
+          }
+        }
+      }
+    }
+    if (super.getDirection().equals("left")){
+      if (super.getX()>startingX){
+        super.addX(startingX-super.getX());
+      }
+    } else {
+      if (super.getX()<startingX){
+        super.addX(startingX-super.getX());
+      }
+    }
+    return projectileActive;
+  }
+}
